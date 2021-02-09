@@ -1,6 +1,8 @@
 use pyo3::prelude::*;
 use pyo3::wrap_pyfunction;
 
+use super::{Population, Vector};
+
 #[doc(hidden)]
 pub fn init_mod_utils(py: Python) -> PyResult<&PyModule> {
     let module = PyModule::new(py, "utils")?;
@@ -14,7 +16,7 @@ pub fn init_mod_utils(py: Python) -> PyResult<&PyModule> {
 
 /// Composes permutations `b` with permutation `c[i]`: `a * b[i]`.
 #[pyfunction]
-pub fn compose(a: Vec<usize>, permus: Vec<Vec<usize>>) -> PyResult<Vec<Vec<usize>>> {
+pub fn compose(a: Vector, permus: Population) -> PyResult<Population> {
     let n = a.len();
     let n_perm = permus.len();
     assert_eq!(n, permus[0].len(), "Vector sizes must match");
@@ -29,7 +31,7 @@ pub fn compose(a: Vec<usize>, permus: Vec<Vec<usize>>) -> PyResult<Vec<Vec<usize
 
 /// Returns the Borda (or central) permutation of a list of permutations.
 #[pyfunction]
-pub fn borda(pop: Vec<Vec<usize>>) -> PyResult<Vec<usize>> {
+pub fn borda(pop: Population) -> PyResult<Vector> {
     let n = pop[0].len();
     let mut sums: Vec<(usize, usize)> = (0..n).zip(vec![0; n]).collect();
 
@@ -47,6 +49,7 @@ pub fn borda(pop: Vec<Vec<usize>>) -> PyResult<Vec<usize>> {
 }
 
 pub mod transformations {
+    use super::Population;
     use pyo3::prelude::*;
     use pyo3::wrap_pyfunction;
 
@@ -63,7 +66,7 @@ pub mod transformations {
 
     /// Returns the marina inversion vector representation of the given permutation.
     #[pyfunction]
-    pub fn permu2marina(permus: Vec<Vec<usize>>) -> PyResult<Vec<Vec<usize>>> {
+    pub fn permu2marina(permus: Population) -> PyResult<Population> {
         let n = permus[0].len();
         let n_perm = permus.len();
         let mut outs = vec![vec![0usize; n]; n_perm];
@@ -80,7 +83,7 @@ pub mod transformations {
     }
 
     #[pyfunction]
-    pub fn marina2permu(marinas: Vec<Vec<usize>>) -> PyResult<Vec<Vec<usize>>> {
+    pub fn marina2permu(marinas: Population) -> PyResult<Population> {
         let n = marinas[0].len();
         let n_vecs = marinas.len();
         let mut permus = vec![vec![0usize; n]; n_vecs];
@@ -106,7 +109,7 @@ pub mod transformations {
     }
 
     #[pyfunction]
-    pub fn permu2inverse(permus: Vec<Vec<usize>>) -> PyResult<Vec<Vec<usize>>> {
+    pub fn permu2inverse(permus: Population) -> PyResult<Population> {
         let n = permus[0].len();
         let n_vecs = permus.len();
         let mut inverses: Vec<Vec<usize>> = vec![vec![0usize; n]; n_vecs];

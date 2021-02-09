@@ -3,6 +3,9 @@ use pyo3::prelude::*;
 mod problems;
 mod utils;
 
+type Vector = Vec<usize>;
+type Population = Vec<Vec<usize>>;
+
 /// Python module for permutations implemented in rust.
 #[pymodule]
 fn pypermu(py: Python, m: &PyModule) -> PyResult<()> {
