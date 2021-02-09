@@ -12,14 +12,17 @@ pub fn init_mod_utils(py: Python) -> PyResult<&PyModule> {
     PyResult::Ok(module)
 }
 
-/// Composes permutation `a` with permutation `b`: `a * b`.
+/// Composes permutations `b` with permutation `c[i]`: `a * b[i]`.
 #[pyfunction]
-pub fn compose(a: Vec<usize>, b: Vec<usize>) -> PyResult<Vec<usize>> {
+pub fn compose(a: Vec<usize>, permus: Vec<Vec<usize>>) -> PyResult<Vec<Vec<usize>>> {
     let n = a.len();
-    assert_eq!(n, b.len(), "Vector sizes must match");
-    let mut out = vec![0usize; n];
-    for i in 0..n {
-        out[b[i]] = a[i];
+    let n_perm = permus.len();
+    assert_eq!(n, permus[0].len(), "Vector sizes must match");
+    let mut out = vec![vec![0usize; n]; n_perm];
+    for index in 0..n_perm {
+        for i in 0..n {
+            out[index][permus[index][i]] = a[i];
+        }
     }
     Ok(out)
 }
@@ -52,29 +55,32 @@ pub mod transformations {
         let submod = PyModule::new(py, "transformations")?;
 
         submod.add_function(wrap_pyfunction!(permu2marina, submod)?)?;
-        submod.add_function(wrap_pyfunction!(marina2permu_batched, submod)?)?;
-        submod.add_function(wrap_pyfunction!(permu2inverse_batched, submod)?)?;
+        submod.add_function(wrap_pyfunction!(marina2permu, submod)?)?;
+        submod.add_function(wrap_pyfunction!(permu2inverse, submod)?)?;
 
         PyResult::Ok(submod)
     }
 
     /// Returns the marina inversion vector representation of the given permutation.
     #[pyfunction]
-    pub fn permu2marina(permu: Vec<usize>) -> PyResult<Vec<usize>> {
-        let n = permu.len();
-        let mut out = vec![0usize; n];
-        for index in 0..n {
-            out[index] = permu
-                .iter()
-                .skip(index)
-                .filter(|&&e| permu[index] > e)
-                .count();
+    pub fn permu2marina(permus: Vec<Vec<usize>>) -> PyResult<Vec<Vec<usize>>> {
+        let n = permus[0].len();
+        let n_perm = permus.len();
+        let mut outs = vec![vec![0usize; n]; n_perm];
+        for index in 0..n_perm {
+            for i in 0..n {
+                outs[index][i] = permus[index]
+                    .iter()
+                    .skip(i)
+                    .filter(|&&e| permus[index][i] > e)
+                    .count();
+            }
         }
-        Ok(out)
+        Ok(outs)
     }
 
     #[pyfunction]
-    pub fn marina2permu_batched(marinas: Vec<Vec<usize>>) -> PyResult<Vec<Vec<usize>>> {
+    pub fn marina2permu(marinas: Vec<Vec<usize>>) -> PyResult<Vec<Vec<usize>>> {
         let n = marinas[0].len();
         let n_vecs = marinas.len();
         let mut permus = vec![vec![0usize; n]; n_vecs];
@@ -100,7 +106,7 @@ pub mod transformations {
     }
 
     #[pyfunction]
-    pub fn permu2inverse_batched(permus: Vec<Vec<usize>>) -> PyResult<Vec<Vec<usize>>> {
+    pub fn permu2inverse(permus: Vec<Vec<usize>>) -> PyResult<Vec<Vec<usize>>> {
         let n = permus[0].len();
         let n_vecs = permus.len();
         let mut inverses: Vec<Vec<usize>> = vec![vec![0usize; n]; n_vecs];
