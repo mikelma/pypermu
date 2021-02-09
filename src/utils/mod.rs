@@ -1,5 +1,6 @@
 use pyo3::prelude::*;
 use pyo3::wrap_pyfunction;
+use rayon::prelude::*;
 
 use super::{Population, Vector};
 
@@ -9,14 +10,15 @@ pub fn init_mod_utils(py: Python) -> PyResult<&PyModule> {
 
     module.add_submodule(transformations::init_mod_transformations(py)?)?;
     module.add_function(wrap_pyfunction!(borda, module)?)?;
-    module.add_function(wrap_pyfunction!(compose, module)?)?;
+    module.add_function(wrap_pyfunction!(compose_population, module)?)?;
+    module.add_function(wrap_pyfunction!(compose_batch, module)?)?;
 
     PyResult::Ok(module)
 }
 
 /// Composes permutations `b` with permutation `c[i]`: `a * b[i]`.
-#[pyfunction]
-pub fn compose(a: Vector, permus: Population) -> PyResult<Population> {
+///#[pyfunction]
+fn compose(a: Vector, permus: &Population) -> PyResult<Population> {
     let n = a.len();
     let n_perm = permus.len();
     assert_eq!(n, permus[0].len(), "Vector sizes must match");
@@ -27,6 +29,21 @@ pub fn compose(a: Vector, permus: Population) -> PyResult<Population> {
         }
     }
     Ok(out)
+}
+
+#[pyfunction]
+pub fn compose_population(vec: Vector, pop: Population) -> PyResult<Population> {
+    compose(vec, &pop)
+}
+
+/// Applies `compose` function to a batch populations. **NOTE**: This function uses
+/// parallelisation.
+#[pyfunction]
+pub fn compose_batch(vecs: Population, pops: Vec<Population>) -> PyResult<Vec<Population>> {
+    pops.par_iter()
+        .zip(vecs)
+        .map(|(batch, vec)| compose(vec, batch))
+        .collect()
 }
 
 /// Returns the Borda (or central) permutation of a list of permutations.
@@ -49,7 +66,7 @@ pub fn borda(pop: Population) -> PyResult<Vector> {
 }
 
 pub mod transformations {
-    use super::Population;
+    use crate::Population;
     use pyo3::prelude::*;
     use pyo3::wrap_pyfunction;
 
