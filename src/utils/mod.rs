@@ -69,13 +69,15 @@ pub mod transformations {
     use crate::Population;
     use pyo3::prelude::*;
     use pyo3::wrap_pyfunction;
+    use rayon::prelude::*;
 
     #[doc(hidden)]
     pub fn init_mod_transformations(py: Python) -> PyResult<&PyModule> {
         let submod = PyModule::new(py, "transformations")?;
 
         submod.add_function(wrap_pyfunction!(permu2marina, submod)?)?;
-        submod.add_function(wrap_pyfunction!(marina2permu, submod)?)?;
+        submod.add_function(wrap_pyfunction!(marina2permu_batch, submod)?)?;
+        submod.add_function(wrap_pyfunction!(marina2permu_population, submod)?)?;
         submod.add_function(wrap_pyfunction!(permu2inverse, submod)?)?;
 
         PyResult::Ok(submod)
@@ -99,8 +101,7 @@ pub mod transformations {
         Ok(outs)
     }
 
-    #[pyfunction]
-    pub fn marina2permu(marinas: Population) -> PyResult<Population> {
+    pub fn marina2permu(marinas: &Population) -> PyResult<Population> {
         let n = marinas[0].len();
         let n_vecs = marinas.len();
         let mut permus = vec![vec![0usize; n]; n_vecs];
@@ -123,6 +124,19 @@ pub mod transformations {
             }
         }
         Ok(permus)
+    }
+
+    #[pyfunction]
+    pub fn marina2permu_population(marinas: Population) -> PyResult<Population> {
+        marina2permu(&marinas)
+    }
+
+    #[pyfunction]
+    pub fn marina2permu_batch(marinas: Vec<Population>) -> PyResult<Vec<Population>> {
+        marinas
+            .par_iter()
+            .map(|batch| marina2permu(batch))
+            .collect()
     }
 
     #[pyfunction]
