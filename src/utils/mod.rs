@@ -76,9 +76,12 @@ pub mod transformations {
         let submod = PyModule::new(py, "transformations")?;
 
         submod.add_function(wrap_pyfunction!(permu2marina, submod)?)?;
-        submod.add_function(wrap_pyfunction!(marina2permu_batch, submod)?)?;
+
         submod.add_function(wrap_pyfunction!(marina2permu_population, submod)?)?;
-        submod.add_function(wrap_pyfunction!(permu2inverse, submod)?)?;
+        submod.add_function(wrap_pyfunction!(marina2permu_batch, submod)?)?;
+
+        submod.add_function(wrap_pyfunction!(permu2inverse_population, submod)?)?;
+        submod.add_function(wrap_pyfunction!(permu2inverse_batch, submod)?)?;
 
         PyResult::Ok(submod)
     }
@@ -139,8 +142,7 @@ pub mod transformations {
             .collect()
     }
 
-    #[pyfunction]
-    pub fn permu2inverse(permus: Population) -> PyResult<Population> {
+    pub fn permu2inverse(permus: &Population) -> PyResult<Population> {
         let n = permus[0].len();
         let n_vecs = permus.len();
         let mut inverses: Vec<Vec<usize>> = vec![vec![0usize; n]; n_vecs];
@@ -150,5 +152,18 @@ pub mod transformations {
             }
         }
         Ok(inverses)
+    }
+
+    #[pyfunction]
+    pub fn permu2inverse_population(permus: Population) -> PyResult<Population> {
+        permu2inverse(&permus)
+    }
+
+    #[pyfunction]
+    pub fn permu2inverse_batch(permus: Vec<Population>) -> PyResult<Vec<Population>> {
+        permus
+            .par_iter()
+            .map(|batch| permu2inverse(batch))
+            .collect()
     }
 }

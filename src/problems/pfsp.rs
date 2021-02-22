@@ -1,14 +1,45 @@
 use pyo3::prelude::*;
+use rayon::prelude::*;
 
 use std::cmp::max;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
+
+use crate::{Population, Vector};
 
 #[doc(hidden)]
 pub fn init_mod_pfsp(py: Python) -> PyResult<&PyModule> {
     let submod = PyModule::new(py, "pfsp")?;
     submod.add_class::<Pfsp>()?;
     PyResult::Ok(submod)
+}
+
+fn evaluate_pfsp(solutions: &Population, matrix: &Vec<Vec<usize>>, n_machines: usize) -> Vector {
+    // check if the solution's length matches with the size of the problem
+    // create a vector to hold the fitness values and allocate the needed memory beforehand
+    let mut fitness_vec = Vec::with_capacity(solutions.len());
+    for solution in solutions.iter() {
+        let mut tft = 0;
+        let mut b = vec![0; n_machines];
+        for (job_i, job_n) in solution.iter().enumerate() {
+            let mut pt = 0;
+            for machine in 0..n_machines {
+                if job_i == 0 && machine == 0 {
+                    pt = matrix[machine][*job_n];
+                } else if job_i > 0 && machine == 0 {
+                    pt = b[machine] + matrix[machine][*job_n];
+                } else if job_i == 0 && machine > 0 {
+                    pt = b[machine - 1] + matrix[machine][*job_n];
+                } else if job_i > 0 && machine > 0 {
+                    pt = max(b[machine - 1], b[machine]) + matrix[machine][*job_n];
+                }
+                b[machine] = pt;
+            }
+            tft += pt;
+        }
+        fitness_vec.push(tft);
+    }
+    fitness_vec
 }
 
 #[pyclass]
@@ -55,36 +86,20 @@ impl Pfsp {
         })
     }
 
-    pub fn evaluate(&self, solutions: Vec<Vec<usize>>) -> PyResult<Vec<usize>> {
+    pub fn evaluate(&self, solutions: Population) -> PyResult<Vector> {
         // check if the solution's length matches with the size of the problem
         assert_eq!(
             solutions[0].len(),
             self.size,
             "instance and solution sizes must match"
         );
-        // create a vector to hold the fitness values and allocate the needed meory beforehand
-        let mut fitness_vec = Vec::with_capacity(solutions.len());
-        for solution in solutions.iter() {
-            let mut tft = 0;
-            let mut b = vec![0; self.n_machines];
-            for (job_i, job_n) in solution.iter().enumerate() {
-                let mut pt = 0;
-                for machine in 0..self.n_machines {
-                    if job_i == 0 && machine == 0 {
-                        pt = self.matrix[machine][*job_n];
-                    } else if job_i > 0 && machine == 0 {
-                        pt = b[machine] + self.matrix[machine][*job_n];
-                    } else if job_i == 0 && machine > 0 {
-                        pt = b[machine - 1] + self.matrix[machine][*job_n];
-                    } else if job_i > 0 && machine > 0 {
-                        pt = max(b[machine - 1], b[machine]) + self.matrix[machine][*job_n];
-                    }
-                    b[machine] = pt;
-                }
-                tft += pt;
-            }
-            fitness_vec.push(tft);
-        }
-        Ok(fitness_vec)
+        Ok(evaluate_pfsp(&solutions, &self.matrix, self.n_machines))
+    }
+
+    pub fn evaluate_batch(&self, solutions: Vec<Population>) -> PyResult<Vec<Vector>> {
+        solutions
+            .par_iter()
+            .map(|batch| Ok(evaluate_pfsp(batch, &self.matrix, self.n_machines)))
+            .collect()
     }
 }
