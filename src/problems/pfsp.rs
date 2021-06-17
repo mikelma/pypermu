@@ -14,7 +14,7 @@ pub fn init_mod_pfsp(py: Python) -> PyResult<&PyModule> {
     PyResult::Ok(submod)
 }
 
-fn evaluate_pfsp(solutions: &Population, matrix: &Vec<Vec<usize>>, n_machines: usize) -> Vector {
+fn evaluate_pfsp(solutions: &Population, matrix: &[Vec<usize>], n_machines: usize) -> Vector {
     // check if the solution's length matches with the size of the problem
     // create a vector to hold the fitness values and allocate the needed memory beforehand
     let mut fitness_vec = Vec::with_capacity(solutions.len());
@@ -96,7 +96,7 @@ impl Pfsp {
         Ok(evaluate_pfsp(&solutions, &self.matrix, self.n_machines))
     }
 
-    pub fn evaluate_batch(&self, solutions: Vec<Population>) -> PyResult<Vec<Vector>> {
+    pub fn evaluate_par(&self, solutions: Vec<Population>) -> PyResult<Vec<Vector>> {
         solutions
             .par_iter()
             .map(|batch| Ok(evaluate_pfsp(batch, &self.matrix, self.n_machines)))
