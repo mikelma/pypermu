@@ -13,7 +13,7 @@ pub fn init_mod_pl(py: Python) -> PyResult<&PyModule> {
 }
 
 /// Samples a given number of samples from a weights vector of a Placket-Luce distribution.
-/// **Note:** The weights vector does not need to be normalized.
+/// **Note:** The weights vector does not need to be normalized, however, weigths must be positive.
 #[pyfunction]
 pub fn sample_pl(weights: Vec<f32>, n_samples: usize) -> PyResult<Population> {
     let n = weights.len();
