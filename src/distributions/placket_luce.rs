@@ -13,9 +13,29 @@ pub fn init_mod_pl(py: Python) -> PyResult<&PyModule> {
 }
 
 /// Samples a given number of samples from a weights vector of a Placket-Luce distribution.
-/// **Note:** The weights vector does not need to be normalized, however, weigths must be positive.
+///
+/// **Note:** The weights vector do not need to be normalized, however, weigths must be positive.
+///
+/// *See*: https://docs.rs/rand/0.8.4/rand/seq/trait.SliceRandom.html#tymethod.choose_multiple_weighted
 #[pyfunction]
 pub fn sample_pl(weights: Vec<f32>, n_samples: usize) -> PyResult<Population> {
+    let n = weights.len();
+    let mut samples = Vec::with_capacity(n_samples);
+    let mut rng = thread_rng(); 
+
+    let choices: Vec<(usize, f64)> = weights.iter().map(|n| *n as f64).enumerate().collect();
+    (0..n_samples).for_each(|_| {
+        samples.push(choices.choose_multiple_weighted(&mut rng, n, |item| item.1).unwrap().map(|s| s.0).collect::<Vec<_>>());
+    });
+
+    Ok(samples)
+}
+
+/// Samples a given number of samples from a weights vector of a Placket-Luce distribution.
+/// **Note:** The weights vector does not need to be normalized, however, weigths must be positive.
+/*
+#[pyfunction]
+pub fn sample_pl_old(weights: Vec<f32>, n_samples: usize) -> PyResult<Population> {
     let n = weights.len();
     let mut samples = Vec::with_capacity(n_samples);
 
@@ -41,3 +61,4 @@ pub fn sample_pl(weights: Vec<f32>, n_samples: usize) -> PyResult<Population> {
 
     Ok(samples)
 }
+*/
