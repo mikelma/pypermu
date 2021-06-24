@@ -6,6 +6,7 @@ use std::io::{BufRead, BufReader};
 
 pub mod pfsp;
 pub mod qap;
+pub mod lop;
 
 #[doc(hidden)]
 pub fn init_mod_problems(py: Python) -> PyResult<&PyModule> {
@@ -14,8 +15,13 @@ pub fn init_mod_problems(py: Python) -> PyResult<&PyModule> {
     // add qap submodule
     let submod = qap::init_mod_qap(py)?;
     module.add_submodule(submod)?;
+
     // add pfsp submodule
     let submod = pfsp::init_mod_pfsp(py)?;
+    module.add_submodule(submod)?;
+
+    // add pfsp submodule
+    let submod = lop::init_mod_lop(py)?;
     module.add_submodule(submod)?;
 
     PyResult::Ok(module)
