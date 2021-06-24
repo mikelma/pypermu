@@ -79,7 +79,7 @@ impl Qap {
             "instance and solution sizes must match"
         );
         let mut fitness_vec = vec![];
-        for solution in solutions.iter() {
+        for solution in solutions {
             let mut f = 0;
             for i in 0..self.size {
                 for j in 0..self.size {

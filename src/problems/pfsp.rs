@@ -18,7 +18,7 @@ fn evaluate_pfsp(solutions: &Population, matrix: &[Vec<usize>], n_machines: usiz
     // check if the solution's length matches with the size of the problem
     // create a vector to hold the fitness values and allocate the needed memory beforehand
     let mut fitness_vec = Vec::with_capacity(solutions.len());
-    for solution in solutions.iter() {
+    for solution in solutions {
         let mut tft = 0;
         let mut b = vec![0; n_machines];
         for (job_i, job_n) in solution.iter().enumerate() {
