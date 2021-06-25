@@ -17,18 +17,7 @@ pub fn init_mod_lop(py: Python) -> PyResult<&PyModule> {
 fn evaluate_lop(solutions: &Population, matrix: &[Vec<usize>]) -> Vector {
     let mut fitness_vec = Vec::with_capacity(solutions.len());
     let n = matrix.len();
-    /*
-    // `for` version
-    for solution in solutions {
-        let mut sum = 0;
-        for (i, sig_i) in solution.iter().enumerate().take(n-1) {
-            for sig_j in solution.iter().skip(i+1) {
-                sum += matrix[*sig_i][*sig_j];
-            }
-        }
-        fitness_vec.push(sum);
-    }
-    */
+
     solutions.iter().for_each(|solution| {
         fitness_vec.push(solution.iter()
             .enumerate()

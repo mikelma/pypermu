@@ -20,7 +20,7 @@ pub fn init_mod_problems(py: Python) -> PyResult<&PyModule> {
     let submod = pfsp::init_mod_pfsp(py)?;
     module.add_submodule(submod)?;
 
-    // add pfsp submodule
+    // add lop submodule
     let submod = lop::init_mod_lop(py)?;
     module.add_submodule(submod)?;
 

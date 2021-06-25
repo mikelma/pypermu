@@ -31,14 +31,11 @@ if f != expected:
 print()
 
 ################# LOP ################# 
-lop = pypermu.problems.lop.Lop('instances/N-p40-01')
-# TODO: Use a known permutation-fitness pair!
-test_permu = [[38, 37,  3, 36, 24, 23, 39, 22, 20,  4, 35, 15, 21,  5,  2, 16,  7,
-               33, 19, 31, 30, 14, 25, 32, 27,  8, 12, 29, 13,  6, 17, 18, 34, 10,
-               9, 26, 28,  1,  0, 11]]
+lop = pypermu.problems.lop.Lop('instances/N-be75eec')
+test_permu = [[ 41, 48, 32, 2, 47, 36, 22, 24, 37, 33, 21, 49, 27, 23, 18, 4, 10, 44, 40, 6, 26, 19, 14, 31, 25, 46, 17, 20, 15, 38, 1, 16, 9, 13, 42, 7, 35, 45, 8, 28, 0, 43, 39, 29, 30, 11, 12, 34, 3, 5]]
 # test_permu = [np.random.permutation(40)]
 f = lop.evaluate(test_permu)[0]
-expected = 0 
+expected = 231707 
 
 print('lop fitness: ', f, ', expected: ',
       expected, ', are equal: ', f == expected)
